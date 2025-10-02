@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import './ProductList.css'
 import CartItem from './CartItem';
 import addItem from './CartSlice.jsx'
+
 function ProductList({ onHomeClick }) {
+    const [addedToCart, setAddedToCart] = useState({});
+    const dispatch = useDispatch();
+    const cartItems = useSelector(state => state.cart.items);
     const [showCart, setShowCart] = useState(false);
     const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
 
@@ -213,6 +217,15 @@ function ProductList({ onHomeClick }) {
             ]
         }
     ];
+    
+    const handleAddToCart = (plant) => {
+        dispatch(addItem(plant));
+        setAddedToCart((prev) => ({
+          ...prev,
+          [plant.name]: true,
+        }));
+      };
+
     const styleObj = {
         backgroundColor: '#4CAF50',
         color: '#fff!important',
@@ -266,6 +279,8 @@ function ProductList({ onHomeClick }) {
         }));
       };
 
+    const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
     return (
         <div>  
             <div className="navbar" style={styleObj}>
@@ -273,6 +288,8 @@ function ProductList({ onHomeClick }) {
                     <div className="luxury">
                         <img src="https://cdn.pixabay.com/photo/2020/08/05/13/12/eco-5465432_1280.png" alt="" />
                         <a href="/" onClick={(e) => handleHomeClick(e)}>
+                        <div className="cart-icon">
+                        <span className="cart-count">{totalItems}</span>
                             <div>
                                 <h3 style={{ color: 'white' }}>Paradise Nursery</h3>
                                 <i style={{ color: 'white' }}>Where Green Meets Serenity</i>
@@ -288,13 +305,19 @@ function ProductList({ onHomeClick }) {
             </div>
             {!showCart ? (
 
-                <div className="product-grid"> {plantsArray.map((category, index) => ( // Loop through each category in plantsArray
-  <div key={index}> {/* Unique key for each category div */}
-    <h1>
-      <div>{category.category}</div> {/* Display the category name */}
-    </h1>
+<div className="product-grid"> 
+{plantsArray.map((category, categoryIndex) => (
+          <div key={categoryIndex}>
+            <h2>{category.category}</h2>
+
     <div className="product-list"> {/* Container for the list of plant cards */}
-      {category.plants.map((plant, plantIndex) => ( // Loop through each plant in the current category
+                    {category.plants.map((plant, plantIndex) => (
+                <div key={plantIndex} className="product-card">
+                  <img src={plant.image} alt={plant.name} />
+                  <h3>{plant.name}</h3>
+                  <p>{plant.description}</p>
+                  <p className="price">{plant.cost}</p>
+                  
         <div className="product-card" key={plantIndex}> {/* Unique key for each plant card */}
           <img 
             className="product-image" 
@@ -306,11 +329,12 @@ function ProductList({ onHomeClick }) {
           <div className="product-description">{plant.description}</div> {/* Display plant description */}
           <div className="product-cost">${plant.cost}</div> {/* Display plant cost */}
           <button
-            className="product-button"
-            onClick={() => handleAddToCart(plant)} // Handle adding plant to cart
-          >
-            Add to Cart
-          </button>
+                    onClick={() => handleAddToCart(plant)}
+                    disabled={addedToCart[plant.name]}
+                    className={addedToCart[plant.name] ? 'added-to-cart' : ''}
+                  >
+                    {addedToCart[plant.name] ? 'Added to Cart' : 'Add to Cart'}
+                  </button>
         </div>
       ))}
     </div>
